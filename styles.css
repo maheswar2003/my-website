@@ -69,10 +69,19 @@ html {
     font-weight: 700;
     color: var(--text-primary);
     text-decoration: none;
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-logo img {
+    height: 40px;
+    width: auto;
+    filter: brightness(0) invert(1);
+}
+
+.nav-logo:hover {
+    text-decoration: none;
 }
 
 .nav-menu {
@@ -549,6 +558,10 @@ html {
     .section-title {
         font-size: 2rem;
     }
+    
+    .nav-logo img {
+        height: 30px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -575,5 +588,9 @@ html {
 
     .contact-form {
         padding: 1.5rem;
+    }
+    
+    .nav-logo img {
+        height: 25px;
     }
 } 
