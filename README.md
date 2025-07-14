@@ -240,10 +240,6 @@ mywebsite/
 - **GitHub**: [@maheswar2003](https://github.com/maheswar2003)
 - **LinkedIn**: [maheswar2003](https://linkedin.com/in/maheswar2003)
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
 ---
 
 **Built with ❤️ by Maheswar Sahoo** | AI/ML Developer & Data Science Enthusiast 
