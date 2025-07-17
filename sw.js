@@ -38,6 +38,7 @@ const STATIC_ASSETS = [
     // Libraries
     'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js',
     'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js'
 ];
 
@@ -149,7 +150,7 @@ const cleanupCache = async (cacheName, maxItems) => {
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing new service worker...');
+    // Installing new service worker
     
     event.waitUntil(
         (async () => {
@@ -164,7 +165,7 @@ self.addEventListener('install', (event) => {
                         await cache.put(url, timestampedResponse);
                     }
                 } catch (error) {
-                    console.warn(`[SW] Failed to cache ${url}:`, error);
+                    // Failed to cache resource
                 }
             });
             
@@ -176,7 +177,7 @@ self.addEventListener('install', (event) => {
             });
             await cache.put('/offline.html', offlineResponse);
             
-            console.log('[SW] Installation complete');
+            // Installation complete
             await self.skipWaiting();
         })()
     );
@@ -184,7 +185,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - cleanup old caches
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating new service worker...');
+    // Activating new service worker
     
     event.waitUntil(
         (async () => {
@@ -195,7 +196,7 @@ self.addEventListener('activate', (event) => {
             await Promise.all(
                 cacheNames.map(async (cacheName) => {
                     if (!validCaches.includes(cacheName)) {
-                        console.log('[SW] Deleting old cache:', cacheName);
+                        // Deleting old cache
                         await caches.delete(cacheName);
                     }
                 })
@@ -203,7 +204,7 @@ self.addEventListener('activate', (event) => {
             
             // Take control of all pages
             await self.clients.claim();
-            console.log('[SW] Activation complete');
+            // Activation complete
         })()
     );
 });
@@ -392,7 +393,7 @@ async function cacheUrls(urls) {
                 await cache.put(url, timestampedResponse);
             }
         } catch (error) {
-            console.warn(`[SW] Failed to cache ${url}:`, error);
+            // Failed to cache resource
         }
     });
     
@@ -409,7 +410,7 @@ self.addEventListener('sync', (event) => {
 async function syncOfflineForms() {
     // This would sync any offline form submissions
     // Implementation depends on your backend API
-    console.log('[SW] Syncing offline forms...');
+    // Syncing offline forms
 }
 
 // Push notifications
@@ -453,7 +454,7 @@ self.addEventListener('periodicsync', (event) => {
 });
 
 async function performCacheCleanup() {
-    console.log('[SW] Performing periodic cache cleanup...');
+    // Performing periodic cache cleanup
     
     const cacheNames = [
         { name: STATIC_CACHE, config: CACHE_CONFIG.static },
@@ -477,4 +478,4 @@ async function performCacheCleanup() {
     }
 }
 
-console.log('[SW] Enhanced Service Worker loaded'); 
+// Enhanced Service Worker loaded 

@@ -14,22 +14,7 @@
     "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
     "related_applications": [],
     "prefer_related_applications": false,
-    "screenshots": [
-        {
-            "src": "/screenshots/desktop.jpg",
-            "sizes": "1280x720",
-            "type": "image/jpeg",
-            "form_factor": "wide",
-            "label": "Desktop view of Maheswar's portfolio"
-        },
-        {
-            "src": "/screenshots/mobile.jpg", 
-            "sizes": "750x1334",
-            "type": "image/jpeg",
-            "form_factor": "narrow",
-            "label": "Mobile view of Maheswar's portfolio"
-        }
-    ],
+    "screenshots": [],
     "icons": [
         {
             "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23667eea'/><text x='50' y='58' text-anchor='middle' font-size='32' fill='white' font-family='Arial'>M</text></svg>",

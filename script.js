@@ -3,6 +3,56 @@
 
 'use strict';
 
+// IMMEDIATE NAVIGATION FIX - Ensure buttons work right away
+document.addEventListener('DOMContentLoaded', () => {
+    // Add navigation handlers that work immediately
+    const setupNavigation = () => {
+        const navLinks = document.querySelectorAll('a[href^="#"]');
+        
+        navLinks.forEach((link, index) => {
+            // Remove any existing handlers
+            const oldHandler = link._immediateNavHandler;
+            if (oldHandler) {
+                link.removeEventListener('click', oldHandler);
+            }
+            
+            // Add new handler
+            const handler = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const targetId = link.getAttribute('href');
+                const target = document.querySelector(targetId);
+                
+                if (target) {
+                    const header = document.querySelector('.header');
+                    const headerHeight = header ? header.offsetHeight : 80;
+                    const targetPosition = target.getBoundingClientRect().top + 
+                                         window.pageYOffset - headerHeight - 20;
+                    
+                    // Use smooth scrolling
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    console.error(`Navigation target not found: ${targetId}`);
+                }
+            };
+            
+            link._immediateNavHandler = handler;
+            link.addEventListener('click', handler);
+        });
+    };
+    
+    // Set up navigation immediately
+    setupNavigation();
+    
+    // Set up again after a short delay in case DOM changes
+    setTimeout(setupNavigation, 100);
+    setTimeout(setupNavigation, 500);
+});
+
 // Performance optimization: Use requestIdleCallback for non-critical tasks
 const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
 
@@ -77,99 +127,7 @@ class LoadingScreen {
     }
 }
 
-// Advanced Cursor Effects
-class CursorEffects {
-    constructor() {
-        this.cursor = null;
-        this.cursorDot = null;
-        this.isDesktop = window.matchMedia('(min-width: 768px) and (hover: hover)').matches;
-        
-        if (this.isDesktop) {
-            this.init();
-        }
-    }
 
-    init() {
-        this.createCursor();
-        this.bindEvents();
-    }
-
-    createCursor() {
-        // Create custom cursor elements
-        this.cursor = document.createElement('div');
-        this.cursor.className = 'custom-cursor';
-        this.cursorDot = document.createElement('div');
-        this.cursorDot.className = 'custom-cursor-dot';
-        
-        document.body.appendChild(this.cursor);
-        document.body.appendChild(this.cursorDot);
-        
-        // Add styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .custom-cursor {
-                width: 30px;
-                height: 30px;
-                border: 2px solid var(--primary-color);
-                border-radius: 50%;
-                position: fixed;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
-                transition: all 0.3s ease;
-                z-index: 9998;
-                opacity: 0;
-                mix-blend-mode: difference;
-            }
-            
-            .custom-cursor-dot {
-                width: 8px;
-                height: 8px;
-                background: var(--primary-color);
-                border-radius: 50%;
-                position: fixed;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
-                z-index: 9999;
-                opacity: 0;
-            }
-            
-            .custom-cursor.hover {
-                transform: translate(-50%, -50%) scale(2);
-                background: rgba(102, 126, 234, 0.1);
-            }
-            
-            body.loaded .custom-cursor,
-            body.loaded .custom-cursor-dot {
-                opacity: 1;
-            }
-            
-            @media (max-width: 768px), (hover: none) {
-                .custom-cursor,
-                .custom-cursor-dot {
-                    display: none;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    bindEvents() {
-        document.addEventListener('mousemove', throttle((e) => {
-            this.cursor.style.left = e.clientX + 'px';
-            this.cursor.style.top = e.clientY + 'px';
-            
-            this.cursorDot.style.left = e.clientX + 'px';
-            this.cursorDot.style.top = e.clientY + 'px';
-        }, 16));
-
-        // Add hover effects
-        const hoverElements = $$('a, button, .project-card, .skill-tag');
-        hoverElements.forEach(el => {
-            el.addEventListener('mouseenter', () => this.cursor.classList.add('hover'));
-            el.addEventListener('mouseleave', () => this.cursor.classList.remove('hover'));
-        });
-    }
-}
 
 // Particle Effects Manager
 class ParticleEffects {
@@ -368,23 +326,23 @@ class GSAPAnimations {
             });
         }
 
-        // Animate skill tags
-        if (skillTags.length > 0) {
-            gsap.from('.skill-tag', {
-                scrollTrigger: {
-                    trigger: '.skills',
-                    start: 'top 80%'
-                },
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                stagger: {
-                    amount: 0.8,
-                    from: 'random'
-                },
-                ease: 'back.out(1.7)'
-            });
-        }
+        // Animate skill tags - disabled to prevent visibility issues
+        // if (skillTags.length > 0) {
+        //     gsap.from('.skill-tag', {
+        //         scrollTrigger: {
+        //             trigger: '.skills',
+        //             start: 'top 80%'
+        //         },
+        //         scale: 0,
+        //         opacity: 0,
+        //         duration: 0.5,
+        //         stagger: {
+        //             amount: 0.8,
+        //             from: 'random'
+        //         },
+        //         ease: 'back.out(1.7)'
+        //     });
+        // }
     }
 
     parallaxEffects() {
@@ -627,18 +585,32 @@ class NavigationManager {
                 const target = $(targetId);
                 
                 if (target) {
-                    const headerHeight = this.header?.offsetHeight || 0;
+                    const headerHeight = this.header?.offsetHeight || 80;
                     const targetPosition = target.getBoundingClientRect().top + 
                                          window.pageYOffset - headerHeight - 20;
                     
-                    // Use GSAP for smooth scrolling if available
-                    if (window.gsap) {
+                    // Use GSAP ScrollTo if available and loaded
+                    if (window.gsap && window.gsap.plugins && window.gsap.plugins.ScrollToPlugin) {
                         gsap.to(window, {
                             scrollTo: targetPosition,
                             duration: 1,
                             ease: 'power3.inOut'
                         });
+                    } else if (window.gsap) {
+                        // Fallback with basic GSAP animation
+                        const startPos = window.pageYOffset;
+                        const distance = targetPosition - startPos;
+                        
+                        gsap.to({}, {
+                            duration: 1,
+                            ease: 'power3.inOut',
+                            onUpdate: function() {
+                                const progress = this.progress();
+                                window.scrollTo(0, startPos + (distance * progress));
+                            }
+                        });
                     } else {
+                        // Native smooth scrolling fallback
                         window.scrollTo({
                             top: targetPosition,
                             behavior: 'smooth'
@@ -863,7 +835,7 @@ class ContactFormManager {
 
             return { success: true };
         } catch (error) {
-            console.error('Form submission error:', error);
+            // Form submission error - handled gracefully
             return { 
                 success: false, 
                 error: 'Network error. Please check your connection and try again.' 
@@ -1279,11 +1251,10 @@ class PerformanceMonitor {
                     const entries = list.getEntries();
                     const lastEntry = entries[entries.length - 1];
                     this.metrics.lcp = lastEntry.startTime;
-                    console.log('LCP:', this.metrics.lcp);
                 });
                 lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
             } catch (e) {
-                console.log('LCP observer not supported');
+                // LCP observer not supported
             }
         }
 
@@ -1293,12 +1264,11 @@ class PerformanceMonitor {
                 const fidObserver = new PerformanceObserver((list) => {
                     for (const entry of list.getEntries()) {
                         this.metrics.fid = entry.processingStart - entry.startTime;
-                        console.log('FID:', this.metrics.fid);
                     }
                 });
                 fidObserver.observe({ entryTypes: ['first-input'] });
             } catch (e) {
-                console.log('FID observer not supported');
+                // FID observer not supported
             }
         }
 
@@ -1316,7 +1286,7 @@ class PerformanceMonitor {
                 });
                 clsObserver.observe({ entryTypes: ['layout-shift'] });
             } catch (e) {
-                console.log('CLS observer not supported');
+                // CLS observer not supported
             }
         }
     }
@@ -1339,7 +1309,7 @@ class PerformanceMonitor {
                         this.metrics.loadComplete = navigationTiming.loadEventEnd - navigationTiming.loadEventStart;
                     }
                     
-                    console.log('Performance Metrics:', this.metrics);
+                    // Performance metrics collected
                 }, 3000);
             });
         }
@@ -1371,7 +1341,7 @@ class App {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        console.warn('Some dependencies did not load in time');
+        // Some dependencies did not load in time
         return false;
     }
 
@@ -1400,10 +1370,7 @@ class App {
             this.components.animations = new AnimationManager();
             this.components.performance = new PerformanceMonitor();
 
-            // Initialize cursor effects for desktop
-            if (window.matchMedia('(min-width: 768px) and (hover: hover)').matches) {
-                this.components.cursor = new CursorEffects();
-            }
+
 
             // Wait for dependencies before initializing dependent components
             await this.waitForDependencies();
@@ -1445,7 +1412,7 @@ class App {
             });
 
         } catch (error) {
-            console.error('Error initializing app:', error);
+            // Error initializing app - fallback to basic functionality
             // Still hide loading screen on error
             this.components.loadingScreen?.hide();
         }
@@ -1642,29 +1609,132 @@ class App {
 // Start the application
 const app = new App();
 
-// Export for debugging
+// Export for debugging (remove in production)
 window.portfolioApp = app;
 
-// Immediate fallback for button functionality
+// Comprehensive dependency check and fallback system
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded - checking buttons');
-    
+    // Check critical dependencies
+    const dependencies = {
+        gsap: !!window.gsap,
+        scrollTrigger: !!(window.gsap && window.gsap.plugins && window.gsap.plugins.ScrollTrigger),
+        scrollToPlugin: !!(window.gsap && window.gsap.plugins && window.gsap.plugins.ScrollToPlugin),
+        particlesJS: !!window.particlesJS
+    };
+
+    // Fallback for missing dependencies
+    if (!dependencies.gsap) {
+        // Disable GSAP-dependent animations
+        document.querySelectorAll('[data-gsap]').forEach(el => {
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+        });
+    }
+
+    if (!dependencies.particlesJS) {
+        // Hide particle container if particles.js failed to load
+        const particleContainer = document.getElementById('hero-particles');
+        if (particleContainer) {
+            particleContainer.style.display = 'none';
+        }
+    }
+
+    // Ensure all critical functionality works
+    const criticalElements = [
+        '.btn',
+        '.skill-tag',
+        '.project-card',
+        '.nav-link',
+        '.contact-form'
+    ];
+
+    criticalElements.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            // Ensure visibility
+            if (element.style.opacity === '0' || element.style.visibility === 'hidden') {
+                element.style.opacity = '1';
+                element.style.visibility = 'visible';
+            }
+            
+            // Ensure proper display
+            if (element.style.display === 'none') {
+                if (element.matches('.btn')) {
+                    element.style.display = 'inline-flex';
+                } else if (element.matches('.skill-tag')) {
+                    element.style.display = 'inline-block';
+                } else {
+                    element.style.display = 'block';
+                }
+            }
+        });
+    });
+
+    // Final navigation check
+    const navLinks = document.querySelectorAll('a[href^="#"]');
+    navLinks.forEach(link => {
+        // Ensure click event is properly bound
+        if (!link._immediateNavHandler) {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+    });
+
+    // Ensure loading screen is hidden
+    const loadingScreen = document.querySelector('.loading-screen');
+    if (loadingScreen) {
+        loadingScreen.style.opacity = '0';
+        loadingScreen.style.visibility = 'hidden';
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+        }, 500);
+    }
+
+    // Ensure body is visible
+    document.body.classList.add('loaded');
+    document.body.style.opacity = '1';
+});
+
+// Immediate fallback for button functionality and navigation
+document.addEventListener('DOMContentLoaded', () => {
     // Ensure buttons are visible and clickable
     const buttons = document.querySelectorAll('.btn');
     buttons.forEach(btn => {
-        console.log('Button found:', btn.textContent);
         btn.style.display = 'inline-flex';
         btn.style.visibility = 'visible';
         btn.style.opacity = '1';
     });
     
-    // Ensure skills are visible
+    // Ensure skills are visible - force display regardless of animations
     const skillTags = document.querySelectorAll('.skill-tag');
     skillTags.forEach(tag => {
         tag.style.display = 'inline-block';
         tag.style.visibility = 'visible';
         tag.style.opacity = '1';
+        tag.style.transform = 'scale(1)';
+        tag.style.pointerEvents = 'auto';
     });
+    
+    // Also ensure skills container is visible
+    const skillsSection = document.querySelector('.skills');
+    const skillTagsContainer = document.querySelector('.skill-tags');
+    
+    if (skillsSection) {
+        skillsSection.style.display = 'block';
+        skillsSection.style.visibility = 'visible';
+        skillsSection.style.opacity = '1';
+    }
+    
+    if (skillTagsContainer) {
+        skillTagsContainer.style.display = 'flex';
+        skillTagsContainer.style.visibility = 'visible';
+        skillTagsContainer.style.opacity = '1';
+    }
     
     // Ensure project cards are visible
     const projectCards = document.querySelectorAll('.project-card');
@@ -1674,5 +1744,55 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.opacity = '1';
     });
     
-    console.log('Visibility fixes applied');
+    // Ensure all project links are clickable
+    const projectLinks = document.querySelectorAll('.project-link');
+    projectLinks.forEach(link => {
+        link.style.pointerEvents = 'auto';
+        link.style.cursor = 'pointer';
+        link.style.zIndex = '10';
+        link.style.position = 'relative';
+    });
+    
+    // Ensure all external links are clickable
+    const externalLinks = document.querySelectorAll('a[href^="http"], a[href^="https"]');
+    externalLinks.forEach(link => {
+        link.style.pointerEvents = 'auto';
+        link.style.cursor = 'pointer';
+        link.style.zIndex = '10';
+        link.style.position = 'relative';
+    });
+    
+    // Immediate navigation fallback - ensure navigation works right away
+    const navLinks = document.querySelectorAll('a[href^="#"]');
+    navLinks.forEach(link => {
+        // Remove any existing click handlers first
+        link.removeEventListener('click', link._navHandler);
+        
+        // Add immediate navigation handler
+        const handler = (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            const target = document.querySelector(targetId);
+            
+            if (target) {
+                const header = document.querySelector('.header');
+                const headerHeight = header ? header.offsetHeight : 80;
+                const targetPosition = target.getBoundingClientRect().top + 
+                                     window.pageYOffset - headerHeight - 20;
+                
+                // Always use native smooth scrolling as immediate fallback
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                                    // Navigation triggered
+            }
+        };
+        
+        link._navHandler = handler;
+        link.addEventListener('click', handler);
+    });
+    
+    // Visibility fixes and navigation fallback applied
 }); 
