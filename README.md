@@ -177,6 +177,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - LinkedIn: [maheswar2003](https://linkedin.com/in/maheswar2003)
 - Twitter: [@maheswar2003](https://twitter.com/maheswar2003)
 
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## 🙏 Acknowledgments
 
 - GSAP for amazing animations
