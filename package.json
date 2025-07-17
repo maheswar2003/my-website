@@ -1,0 +1,62 @@
+{
+  "name": "maheswar-portfolio",
+  "version": "2.0.0",
+  "description": "High-performance portfolio website for Maheswar Sahoo - AI/ML Developer",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -s -p 8080",
+    "build": "npm run optimize",
+    "optimize": "npm run optimize:images && npm run optimize:css && npm run optimize:js && npm run optimize:html",
+    "optimize:images": "npx imagemin ms.jpg --out-dir=. --plugin=mozjpeg --plugin=webp",
+    "optimize:css": "npx cssnano styles.css styles.min.css && mv styles.min.css styles.css",
+    "optimize:js": "npx terser script.js -c -m -o script.min.js && mv script.min.js script.js",
+    "optimize:html": "npx html-minifier-terser index.html -o index.min.html --collapse-whitespace --remove-comments --minify-css --minify-js && mv index.min.html index.html",
+    "lighthouse": "npx lighthouse https://localhost:8080 --view",
+    "analyze": "npx webpack-bundle-analyzer",
+    "format": "npx prettier --write \"**/*.{html,css,js,json}\"",
+    "lint": "npx eslint script.js",
+    "test": "echo \"No tests configured yet\"",
+    "deploy": "npm run build && echo \"Ready for deployment!\"",
+    "pwa-asset-generator": "npx pwa-asset-generator ms.jpg ./icons --background '#667eea' --splash-only --type png --opaque false"
+  },
+  "keywords": [
+    "portfolio",
+    "ai",
+    "ml",
+    "machine-learning",
+    "data-science",
+    "pwa",
+    "performance",
+    "maheswar-sahoo"
+  ],
+  "author": "Maheswar Sahoo <maheswar2003@yahoo.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "cssnano": "^6.0.1",
+    "eslint": "^8.54.0",
+    "html-minifier-terser": "^7.2.0",
+    "imagemin": "^8.0.1",
+    "imagemin-mozjpeg": "^10.0.0",
+    "imagemin-webp": "^8.0.0",
+    "lighthouse": "^11.3.0",
+    "prettier": "^3.1.0",
+    "pwa-asset-generator": "^6.3.1",
+    "serve": "^14.2.1",
+    "terser": "^5.24.0",
+    "webpack-bundle-analyzer": "^4.10.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maheswar2003/mywebsite.git"
+  },
+  "homepage": "https://maheswar2003.github.io/mywebsite/"
+} 

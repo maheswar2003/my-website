@@ -4,6 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://formsubmit.co">
+    
+    <!-- Critical CSS - Inline for instant rendering -->
+    <style>
+        /* Critical CSS for above-the-fold content */
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary-color:#667eea;--secondary-color:#764ba2;--text-primary:#2d3748;--background:#fff;--surface:#f7fafc;scroll-behavior:smooth}
+        @media(prefers-color-scheme:dark){:root{--text-primary:#f7fafc;--background:#1a202c;--surface:#2d3748}}
+        body{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:var(--text-primary);background:var(--background);opacity:0;transition:opacity .3s}
+        body.loaded{opacity:1}
+        .header{position:fixed;top:0;width:100%;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:1000;transition:all .3s}
+        .nav{padding:1rem 0}
+        .nav-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 1rem}
+        .hero{padding:120px 0 80px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;min-height:100vh;display:flex;align-items:center}
+        .loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s,visibility .5s}
+        .loading-screen.fade-out{opacity:0;visibility:hidden}
+        @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.7}}
+        .loader{width:60px;height:60px;border-radius:50%;background:var(--primary-color);animation:pulse 1.5s ease-in-out infinite}
+    </style>
+    
     <!-- SEO Meta Tags -->
     <title>Maheswar Sahoo - AI/ML Developer & Data Science Student</title>
     <meta name="description" content="Maheswar Sahoo - AI/ML enthusiast crafting real-world solutions. B.Tech CSE student at ITER SOA, IIT Madras Data Science Diploma. Explore my projects and connect!">
@@ -27,19 +51,20 @@
     <meta name="twitter:image" content="https://maheswar2003.github.io/mywebsite/ms.jpg">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     
     <!-- Preload Critical Resources -->
     <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="ms.jpg" as="image">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preload" href="ms.jpg" as="image" fetchpriority="high">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Load Font Awesome asynchronously -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -76,6 +101,11 @@
     </script>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loader"></div>
+    </div>
+    
     <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
@@ -116,8 +146,9 @@
                     </div>
                 </div>
                 <div class="hero-image">
-                    <img src="ms.jpg" alt="Maheswar Sahoo - AI/ML Developer profile picture" class="hero-profile-img" loading="eager" width="250" height="250">
+                    <img src="ms.jpg" alt="Maheswar Sahoo - AI/ML Developer profile picture" class="hero-profile-img" loading="eager" width="250" height="250" decoding="async">
                     <div class="hero-circle" aria-hidden="true"></div>
+                    <div class="hero-particles" id="hero-particles" aria-hidden="true"></div>
                 </div>
             </div>
         </section>
@@ -264,6 +295,26 @@
 
     <!-- Scripts -->
     <script src="script.js" defer></script>
+    
+    <!-- GSAP for advanced animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+    
+    <!-- Particles.js for background effects -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js" defer></script>
+    
+    <!-- Three.js for 3D effects (loaded on demand) -->
+    <script>
+        // Lazy load Three.js when needed
+        window.loadThreeJS = () => {
+            if (!window.THREE) {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+                script.defer = true;
+                document.head.appendChild(script);
+            }
+        };
+    </script>
     
     <!-- Service Worker Registration -->
     <script>

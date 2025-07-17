@@ -1,9 +1,27 @@
-// Service Worker for Portfolio Website
-// Version 1.0.0
+// Enhanced Service Worker for Portfolio Website
+// Version 2.0.0 - Optimized Performance
 
-const CACHE_NAME = 'maheswar-portfolio-v1.0.0';
-const STATIC_CACHE = 'static-cache-v1.0.0';
-const DYNAMIC_CACHE = 'dynamic-cache-v1.0.0';
+const CACHE_VERSION = 'v2.0.0';
+const CACHE_PREFIX = 'maheswar-portfolio';
+const STATIC_CACHE = `${CACHE_PREFIX}-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `${CACHE_PREFIX}-dynamic-${CACHE_VERSION}`;
+const IMAGE_CACHE = `${CACHE_PREFIX}-images-${CACHE_VERSION}`;
+
+// Cache configuration
+const CACHE_CONFIG = {
+    static: {
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxItems: 50
+    },
+    dynamic: {
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        maxItems: 30
+    },
+    images: {
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        maxItems: 20
+    }
+};
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
@@ -11,397 +29,452 @@ const STATIC_ASSETS = [
     '/index.html',
     '/styles.css',
     '/script.js',
+    '/manifest.json',
     '/ms.jpg',
-    '/manifest.json'
-];
-
-// External resources to cache
-const EXTERNAL_RESOURCES = [
+    // Fonts
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+    // Icons
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+    // Libraries
+    'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js',
+    'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js'
 ];
 
-// URLs that should always be fetched from network
-const NETWORK_FIRST_URLS = [
-    'https://formsubmit.co/',
-    '/api/'
-];
+// Offline fallback page HTML
+const OFFLINE_HTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Maheswar Sahoo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+        }
+        .offline-container {
+            padding: 2rem;
+            max-width: 400px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <h1>📡</h1>
+        <h1>Offline</h1>
+        <p>It seems you're offline. Please check your internet connection and try again.</p>
+        <a href="/" class="btn" onclick="window.location.reload()">Try Again</a>
+    </div>
+</body>
+</html>
+`;
 
 // Utility functions
-const isStaticAsset = (url) => {
-    return STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.endsWith(asset));
+const getCurrentTime = () => Date.now();
+
+const isExpired = (response, maxAge) => {
+    const fetchTime = response.headers.get('sw-fetch-time');
+    if (!fetchTime) return true;
+    return getCurrentTime() - parseInt(fetchTime) > maxAge;
 };
 
-const isExternalResource = (url) => {
-    return EXTERNAL_RESOURCES.some(resource => url.href.startsWith(resource));
+const createTimestampedResponse = async (response) => {
+    const clonedResponse = response.clone();
+    const headers = new Headers(clonedResponse.headers);
+    headers.set('sw-fetch-time', getCurrentTime().toString());
+    
+    const body = await clonedResponse.blob();
+    return new Response(body, {
+        status: clonedResponse.status,
+        statusText: clonedResponse.statusText,
+        headers: headers
+    });
 };
 
-const isNetworkFirst = (url) => {
-    return NETWORK_FIRST_URLS.some(pattern => url.href.includes(pattern));
+const getCache = async (cacheName) => {
+    return await caches.open(cacheName);
+};
+
+const getCacheConfig = (url) => {
+    if (url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
+        return { cacheName: IMAGE_CACHE, config: CACHE_CONFIG.images };
+    }
+    if (STATIC_ASSETS.includes(url.pathname) || STATIC_ASSETS.includes(url.href)) {
+        return { cacheName: STATIC_CACHE, config: CACHE_CONFIG.static };
+    }
+    return { cacheName: DYNAMIC_CACHE, config: CACHE_CONFIG.dynamic };
+};
+
+const cleanupCache = async (cacheName, maxItems) => {
+    const cache = await getCache(cacheName);
+    const keys = await cache.keys();
+    
+    if (keys.length > maxItems) {
+        const keysToDelete = keys.slice(0, keys.length - maxItems);
+        await Promise.all(keysToDelete.map(key => cache.delete(key)));
+    }
 };
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-    console.log('[SW] Install event');
+    console.log('[SW] Installing new service worker...');
     
     event.waitUntil(
-        Promise.all([
-            // Cache static assets
-            caches.open(STATIC_CACHE).then((cache) => {
-                console.log('[SW] Caching static assets');
-                return cache.addAll(STATIC_ASSETS);
-            }),
-            // Cache external resources
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-                console.log('[SW] Caching external resources');
-                return Promise.allSettled(
-                    EXTERNAL_RESOURCES.map(url => 
-                        cache.add(url).catch(err => console.warn(`[SW] Failed to cache ${url}:`, err))
-                    )
-                );
-            })
-        ]).then(() => {
-            console.log('[SW] All caches populated');
-            // Force the waiting service worker to become the active service worker
-            return self.skipWaiting();
-        })
+        (async () => {
+            const cache = await getCache(STATIC_CACHE);
+            
+            // Cache static assets in parallel
+            const cachePromises = STATIC_ASSETS.map(async (url) => {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const timestampedResponse = await createTimestampedResponse(response);
+                        await cache.put(url, timestampedResponse);
+                    }
+                } catch (error) {
+                    console.warn(`[SW] Failed to cache ${url}:`, error);
+                }
+            });
+            
+            await Promise.allSettled(cachePromises);
+            
+            // Cache offline page
+            const offlineResponse = new Response(OFFLINE_HTML, {
+                headers: { 'Content-Type': 'text/html' }
+            });
+            await cache.put('/offline.html', offlineResponse);
+            
+            console.log('[SW] Installation complete');
+            await self.skipWaiting();
+        })()
     );
 });
 
 // Activate event - cleanup old caches
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activate event');
+    console.log('[SW] Activating new service worker...');
     
     event.waitUntil(
-        Promise.all([
-            // Cleanup old caches
-            caches.keys().then((cacheNames) => {
-                return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        if (cacheName !== STATIC_CACHE && 
-                            cacheName !== DYNAMIC_CACHE && 
-                            cacheName !== CACHE_NAME) {
-                            console.log('[SW] Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            }),
+        (async () => {
+            // Clean up old caches
+            const cacheNames = await caches.keys();
+            const validCaches = [STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE];
+            
+            await Promise.all(
+                cacheNames.map(async (cacheName) => {
+                    if (!validCaches.includes(cacheName)) {
+                        console.log('[SW] Deleting old cache:', cacheName);
+                        await caches.delete(cacheName);
+                    }
+                })
+            );
+            
             // Take control of all pages
-            self.clients.claim()
-        ]).then(() => {
-            console.log('[SW] Service worker activated and ready');
-        })
+            await self.clients.claim();
+            console.log('[SW] Activation complete');
+        })()
     );
 });
 
-// Fetch event - implement caching strategies
+// Fetch event - implement advanced caching strategies
 self.addEventListener('fetch', (event) => {
-    const requestUrl = new URL(event.request.url);
+    const { request } = event;
+    const url = new URL(request.url);
     
     // Skip non-GET requests
-    if (event.request.method !== 'GET') {
+    if (request.method !== 'GET') return;
+    
+    // Skip non-HTTP(S) requests
+    if (!request.url.startsWith('http')) return;
+    
+    // Skip requests to different origins (except allowed CDNs)
+    const allowedOrigins = [
+        self.location.origin,
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+        'https://cdnjs.cloudflare.com',
+        'https://cdn.jsdelivr.net'
+    ];
+    
+    if (!allowedOrigins.some(origin => request.url.startsWith(origin))) {
         return;
     }
     
-    // Skip chrome-extension and other non-http requests
-    if (!event.request.url.startsWith('http')) {
-        return;
-    }
-    
-    event.respondWith(handleRequest(event.request, requestUrl));
+    event.respondWith(handleRequest(request, url));
 });
 
-// Main request handler with different caching strategies
-async function handleRequest(request, requestUrl) {
-    try {
-        // Strategy 1: Network First (for API calls and forms)
-        if (isNetworkFirst(requestUrl)) {
-            return await networkFirst(request);
-        }
-        
-        // Strategy 2: Cache First (for static assets)
-        if (isStaticAsset(requestUrl)) {
-            return await cacheFirst(request);
-        }
-        
-        // Strategy 3: Stale While Revalidate (for external resources)
-        if (isExternalResource(requestUrl)) {
-            return await staleWhileRevalidate(request);
-        }
-        
-        // Strategy 4: Network First with fallback (for everything else)
-        return await networkFirst(request);
-        
-    } catch (error) {
-        console.error('[SW] Request failed:', error);
-        return await getCacheOrOfflinePage(request);
+// Main request handler
+async function handleRequest(request, url) {
+    // Special handling for navigation requests
+    if (request.mode === 'navigate') {
+        return handleNavigationRequest(request);
     }
+    
+    // Get cache configuration
+    const { cacheName, config } = getCacheConfig(url);
+    
+    // Try cache first for static assets
+    if (cacheName === STATIC_CACHE) {
+        return cacheFirst(request, cacheName, config);
+    }
+    
+    // Use stale-while-revalidate for dynamic content
+    return staleWhileRevalidate(request, cacheName, config);
 }
 
-// Cache First Strategy
-async function cacheFirst(request) {
-    const cachedResponse = await caches.match(request);
-    
-    if (cachedResponse) {
-        console.log('[SW] Serving from cache:', request.url);
-        return cachedResponse;
-    }
-    
-    console.log('[SW] Cache miss, fetching:', request.url);
-    const networkResponse = await fetch(request);
-    
-    // Cache the response
-    if (networkResponse && networkResponse.status === 200) {
-        const cache = await caches.open(STATIC_CACHE);
-        cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-}
-
-// Network First Strategy
-async function networkFirst(request) {
+// Handle navigation requests (HTML pages)
+async function handleNavigationRequest(request) {
     try {
-        console.log('[SW] Network first for:', request.url);
-        const networkResponse = await fetch(request);
-        
-        // Cache successful responses (except for form submissions)
-        if (networkResponse && 
-            networkResponse.status === 200 && 
-            !request.url.includes('formsubmit.co')) {
-            const cache = await caches.open(DYNAMIC_CACHE);
-            cache.put(request, networkResponse.clone());
+        // Try network first
+        const response = await fetch(request);
+        if (response.ok) {
+            const cache = await getCache(DYNAMIC_CACHE);
+            const timestampedResponse = await createTimestampedResponse(response);
+            cache.put(request, timestampedResponse);
+            return response;
         }
-        
-        return networkResponse;
+        throw new Error('Network response not ok');
     } catch (error) {
-        console.log('[SW] Network failed, trying cache:', request.url);
+        // Try cache
         const cachedResponse = await caches.match(request);
-        
         if (cachedResponse) {
             return cachedResponse;
         }
         
+        // Return offline page
+        const offlineResponse = await caches.match('/offline.html');
+        return offlineResponse || new Response('Offline', {
+            status: 503,
+            statusText: 'Service Unavailable'
+        });
+    }
+}
+
+// Cache-first strategy
+async function cacheFirst(request, cacheName, config) {
+    const cache = await getCache(cacheName);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse && !isExpired(cachedResponse, config.maxAge)) {
+        return cachedResponse;
+    }
+    
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            const timestampedResponse = await createTimestampedResponse(networkResponse);
+            await cache.put(request, timestampedResponse);
+            await cleanupCache(cacheName, config.maxItems);
+        }
+        return networkResponse;
+    } catch (error) {
+        if (cachedResponse) {
+            return cachedResponse;
+        }
         throw error;
     }
 }
 
-// Stale While Revalidate Strategy
-async function staleWhileRevalidate(request) {
-    const cachedResponse = await caches.match(request);
+// Stale-while-revalidate strategy
+async function staleWhileRevalidate(request, cacheName, config) {
+    const cache = await getCache(cacheName);
+    const cachedResponse = await cache.match(request);
     
-    // Start fetch in background
-    const fetchPromise = fetch(request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-            const cache = caches.open(DYNAMIC_CACHE);
-            cache.then(c => c.put(request, networkResponse.clone()));
+    const fetchPromise = fetch(request).then(async (networkResponse) => {
+        if (networkResponse.ok) {
+            const timestampedResponse = await createTimestampedResponse(networkResponse);
+            await cache.put(request, timestampedResponse);
+            await cleanupCache(cacheName, config.maxItems);
         }
         return networkResponse;
-    }).catch(() => {
-        console.log('[SW] Network failed for:', request.url);
-    });
+    }).catch(() => null);
     
-    // Return cached version immediately if available
-    if (cachedResponse) {
-        console.log('[SW] Serving stale content:', request.url);
+    if (cachedResponse && !isExpired(cachedResponse, config.maxAge)) {
         return cachedResponse;
     }
     
-    // Otherwise wait for network
-    console.log('[SW] No cache, waiting for network:', request.url);
-    return await fetchPromise;
+    const networkResponse = await fetchPromise;
+    return networkResponse || cachedResponse || createOfflineResponse(request);
 }
 
-// Fallback for offline scenarios
-async function getCacheOrOfflinePage(request) {
-    // Try to get from any cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
+// Create offline response
+function createOfflineResponse(request) {
+    const url = new URL(request.url);
     
-    // For HTML requests, return the main page as fallback
-    if (request.headers.get('accept')?.includes('text/html')) {
-        const mainPage = await caches.match('/');
-        if (mainPage) {
-            return mainPage;
-        }
-    }
-    
-    // For images, return a placeholder
+    // Return appropriate offline response based on request type
     if (request.headers.get('accept')?.includes('image/')) {
         return new Response(
             `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
                 <rect width="200" height="200" fill="#f3f4f6"/>
-                <text x="100" y="100" text-anchor="middle" dy=".3em" fill="#9ca3af">Image Unavailable</text>
+                <text x="100" y="100" text-anchor="middle" dy=".3em" fill="#9ca3af" font-family="sans-serif">Offline</text>
             </svg>`,
             { headers: { 'Content-Type': 'image/svg+xml' } }
         );
     }
     
-    // Return a generic offline response
-    return new Response(
-        JSON.stringify({ 
-            error: 'Offline', 
-            message: 'This content is not available offline' 
-        }),
-        { 
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: { 'Content-Type': 'application/json' }
-        }
-    );
+    return new Response('Offline', {
+        status: 503,
+        statusText: 'Service Unavailable'
+    });
 }
 
 // Handle messages from the main thread
 self.addEventListener('message', (event) => {
-    if (event.data && event.data.type) {
-        switch (event.data.type) {
-            case 'SKIP_WAITING':
-                self.skipWaiting();
-                break;
-            case 'GET_CACHE_STATUS':
-                getCacheStatus().then(status => {
-                    event.ports[0].postMessage(status);
-                });
-                break;
-            case 'CLEAR_CACHE':
-                clearAllCaches().then(() => {
+    const { type, data } = event.data;
+    
+    switch (type) {
+        case 'SKIP_WAITING':
+            self.skipWaiting();
+            break;
+            
+        case 'CLEAR_CACHE':
+            event.waitUntil(
+                caches.keys().then(cacheNames => 
+                    Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)))
+                ).then(() => {
                     event.ports[0].postMessage({ success: true });
-                });
-                break;
-            default:
-                console.log('[SW] Unknown message type:', event.data.type);
-        }
+                })
+            );
+            break;
+            
+        case 'CACHE_URLS':
+            event.waitUntil(
+                cacheUrls(data.urls).then(() => {
+                    event.ports[0].postMessage({ success: true });
+                })
+            );
+            break;
     }
 });
 
-// Get cache status
-async function getCacheStatus() {
-    const cacheNames = await caches.keys();
-    const status = {};
+// Cache specific URLs on demand
+async function cacheUrls(urls) {
+    if (!Array.isArray(urls)) return;
     
-    for (const cacheName of cacheNames) {
-        const cache = await caches.open(cacheName);
-        const keys = await cache.keys();
-        status[cacheName] = keys.length;
-    }
-    
-    return status;
-}
-
-// Clear all caches
-async function clearAllCaches() {
-    const cacheNames = await caches.keys();
-    await Promise.all(
-        cacheNames.map(cacheName => caches.delete(cacheName))
-    );
-    console.log('[SW] All caches cleared');
-}
-
-// Background sync for form submissions (if supported)
-if ('sync' in self.registration) {
-    self.addEventListener('sync', (event) => {
-        if (event.tag === 'contact-form-sync') {
-            event.waitUntil(syncContactForm());
+    const cache = await getCache(DYNAMIC_CACHE);
+    const cachePromises = urls.map(async (url) => {
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const timestampedResponse = await createTimestampedResponse(response);
+                await cache.put(url, timestampedResponse);
+            }
+        } catch (error) {
+            console.warn(`[SW] Failed to cache ${url}:`, error);
         }
     });
+    
+    await Promise.allSettled(cachePromises);
 }
 
-// Sync contact form submissions
-async function syncContactForm() {
-    try {
-        // Get stored form data from IndexedDB (if implemented)
-        console.log('[SW] Syncing contact form submissions');
-        // This would sync any pending form submissions when back online
-    } catch (error) {
-        console.error('[SW] Failed to sync contact form:', error);
+// Background sync for offline form submissions
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-forms') {
+        event.waitUntil(syncOfflineForms());
     }
+});
+
+async function syncOfflineForms() {
+    // This would sync any offline form submissions
+    // Implementation depends on your backend API
+    console.log('[SW] Syncing offline forms...');
 }
 
-// Push notifications (if implemented)
+// Push notifications
 self.addEventListener('push', (event) => {
-    if (event.data) {
-        const options = {
-            body: event.data.text(),
-            icon: '/icon-192x192.png',
-            badge: '/icon-72x72.png',
-            tag: 'portfolio-notification',
-            renotify: true,
-            actions: [
-                {
-                    action: 'view',
-                    title: 'View Portfolio'
-                },
-                {
-                    action: 'close',
-                    title: 'Close'
-                }
-            ]
-        };
-        
-        event.waitUntil(
-            self.registration.showNotification('Portfolio Update', options)
-        );
-    }
+    if (!event.data) return;
+    
+    const options = {
+        body: event.data.text(),
+        icon: '/icon-192.png',
+        badge: '/icon-72.png',
+        vibrate: [200, 100, 200],
+        tag: 'portfolio-notification',
+        requireInteraction: true,
+        actions: [
+            { action: 'view', title: 'View Portfolio' },
+            { action: 'close', title: 'Close' }
+        ]
+    };
+    
+    event.waitUntil(
+        self.registration.showNotification('Maheswar Sahoo', options)
+    );
 });
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     
-    if (event.action === 'view') {
+    if (event.action === 'view' || !event.action) {
         event.waitUntil(
             clients.openWindow('/')
         );
     }
 });
 
-// Periodic background sync (if supported)
-if ('periodicSync' in self.registration) {
-    self.addEventListener('periodicsync', (event) => {
-        if (event.tag === 'cache-cleanup') {
-            event.waitUntil(performCacheCleanup());
-        }
-    });
-}
+// Periodic background sync for cache cleanup
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'cleanup-caches') {
+        event.waitUntil(performCacheCleanup());
+    }
+});
 
-// Perform cache cleanup
 async function performCacheCleanup() {
-    try {
-        // Clean up old entries from dynamic cache
-        const cache = await caches.open(DYNAMIC_CACHE);
-        const requests = await cache.keys();
+    console.log('[SW] Performing periodic cache cleanup...');
+    
+    const cacheNames = [
+        { name: STATIC_CACHE, config: CACHE_CONFIG.static },
+        { name: DYNAMIC_CACHE, config: CACHE_CONFIG.dynamic },
+        { name: IMAGE_CACHE, config: CACHE_CONFIG.images }
+    ];
+    
+    for (const { name, config } of cacheNames) {
+        await cleanupCache(name, config.maxItems);
         
-        // Remove entries older than 7 days
-        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-        const cutoff = Date.now() - maxAge;
+        // Remove expired items
+        const cache = await getCache(name);
+        const keys = await cache.keys();
         
-        for (const request of requests) {
+        for (const request of keys) {
             const response = await cache.match(request);
-            if (response) {
-                const dateHeader = response.headers.get('date');
-                if (dateHeader && new Date(dateHeader).getTime() < cutoff) {
-                    await cache.delete(request);
-                    console.log('[SW] Cleaned up old cache entry:', request.url);
-                }
+            if (response && isExpired(response, config.maxAge)) {
+                await cache.delete(request);
             }
         }
-        
-        console.log('[SW] Cache cleanup completed');
-    } catch (error) {
-        console.error('[SW] Cache cleanup failed:', error);
     }
 }
 
-// Error handling
-self.addEventListener('error', (event) => {
-    console.error('[SW] Service Worker error:', event.error);
-});
-
-self.addEventListener('unhandledrejection', (event) => {
-    console.error('[SW] Unhandled promise rejection:', event.reason);
-});
-
-console.log('[SW] Service Worker loaded successfully'); 
+console.log('[SW] Enhanced Service Worker loaded'); 
