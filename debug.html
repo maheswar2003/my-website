@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Skills and Projects</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: #f0f0f0;
+        }
+        
+        .debug-section {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 2px solid #333;
+            background: white;
+        }
+        
+        .debug-title {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Force visibility for debugging */
+        .skill-tag {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        
+        .project-card {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .about, .projects {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Page - Testing Skills and Projects Visibility</h1>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">1. Basic HTML Test</h2>
+        <p>If you can see this text, basic HTML/CSS is working.</p>
+        
+        <h3>Simple Skill Tags (no external CSS):</h3>
+        <span style="background: #667eea; color: white; padding: 0.5rem 1rem; border-radius: 25px; margin: 0.25rem; display: inline-block;">Python</span>
+        <span style="background: #764ba2; color: white; padding: 0.5rem 1rem; border-radius: 25px; margin: 0.25rem; display: inline-block;">JavaScript</span>
+        <span style="background: #f093fb; color: white; padding: 0.5rem 1rem; border-radius: 25px; margin: 0.25rem; display: inline-block;">React</span>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">2. Skills from Main CSS</h2>
+        <div class="skill-tags">
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">C++</span>
+            <span class="skill-tag">JavaScript</span>
+            <span class="skill-tag">Java</span>
+            <span class="skill-tag">TensorFlow</span>
+            <span class="skill-tag">PyTorch</span>
+            <span class="skill-tag">React</span>
+            <span class="skill-tag">Node.js</span>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">3. Projects from Main CSS</h2>
+        <div class="projects-grid">
+            <article class="project-card">
+                <div class="project-image">
+                    <i class="fas fa-mobile-alt project-icon"></i>
+                </div>
+                <div class="project-content">
+                    <h3>Test Project</h3>
+                    <p>This is a test project to see if project cards are visible.</p>
+                    <div class="project-links">
+                        <a href="#" class="project-link">Test Link</a>
+                    </div>
+                </div>
+            </article>
+            
+            <article class="project-card">
+                <div class="project-image">
+                    <i class="fas fa-robot project-icon"></i>
+                </div>
+                <div class="project-content">
+                    <h3>Another Test Project</h3>
+                    <p>Another test project to verify visibility.</p>
+                    <div class="project-links">
+                        <a href="#" class="project-link">Another Link</a>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">4. Full About Section Test</h2>
+        <section class="about">
+            <div class="container">
+                <h2 class="section-title">About Me (Debug)</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>This is a test of the about section to see if it renders correctly.</p>
+                    </div>
+                    <div class="skills">
+                        <h3>Skills (Debug)</h3>
+                        <div class="skill-tags">
+                            <span class="skill-tag">Python</span>
+                            <span class="skill-tag">JavaScript</span>
+                            <span class="skill-tag">React</span>
+                            <span class="skill-tag">Node.js</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">5. Full Projects Section Test</h2>
+        <section class="projects">
+            <div class="container">
+                <h2 class="section-title">My Projects (Debug)</h2>
+                <div class="projects-grid">
+                    <article class="project-card">
+                        <div class="project-image">
+                            <div style="font-size: 3rem; color: #667eea;">📱</div>
+                        </div>
+                        <div class="project-content">
+                            <h3>Debug Project 1</h3>
+                            <p>Testing project card visibility and styling.</p>
+                        </div>
+                    </article>
+                    
+                    <article class="project-card">
+                        <div class="project-image">
+                            <div style="font-size: 3rem; color: #764ba2;">🤖</div>
+                        </div>
+                        <div class="project-content">
+                            <h3>Debug Project 2</h3>
+                            <p>Another test project for debugging purposes.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        console.log('Debug page loaded');
+        
+        // Check element visibility
+        document.addEventListener('DOMContentLoaded', () => {
+            const skillTags = document.querySelectorAll('.skill-tag');
+            const projectCards = document.querySelectorAll('.project-card');
+            
+            console.log('Found skill tags:', skillTags.length);
+            console.log('Found project cards:', projectCards.length);
+            
+            skillTags.forEach((tag, index) => {
+                const styles = window.getComputedStyle(tag);
+                console.log(`Skill tag ${index}:`, {
+                    display: styles.display,
+                    visibility: styles.visibility,
+                    opacity: styles.opacity,
+                    zIndex: styles.zIndex
+                });
+            });
+            
+            projectCards.forEach((card, index) => {
+                const styles = window.getComputedStyle(card);
+                console.log(`Project card ${index}:`, {
+                    display: styles.display,
+                    visibility: styles.visibility,
+                    opacity: styles.opacity,
+                    zIndex: styles.zIndex
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

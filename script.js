@@ -324,8 +324,18 @@ class GSAPAnimations {
     }
 
     scrollAnimations() {
-        // Animate sections on scroll
+        // Ensure elements are visible first
         const sections = $$('.about, .projects, .contact');
+        const projectCards = $$('.project-card');
+        const skillTags = $$('.skill-tag');
+        
+        // Set initial visibility
+        [...sections, ...projectCards, ...skillTags].forEach(el => {
+            el.style.opacity = '1';
+            el.style.visibility = 'visible';
+        });
+        
+        // Animate sections on scroll
         sections.forEach((section, index) => {
             gsap.from(section, {
                 scrollTrigger: {
@@ -342,35 +352,39 @@ class GSAPAnimations {
         });
 
         // Animate project cards
-        gsap.from('.project-card', {
-            scrollTrigger: {
-                trigger: '.projects-grid',
-                start: 'top 70%'
-            },
-            y: 50,
-            opacity: 0,
-            duration: 0.8,
-            stagger: {
-                amount: 0.6,
-                from: 'start'
-            }
-        });
+        if (projectCards.length > 0) {
+            gsap.from('.project-card', {
+                scrollTrigger: {
+                    trigger: '.projects-grid',
+                    start: 'top 70%'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 0.8,
+                stagger: {
+                    amount: 0.6,
+                    from: 'start'
+                }
+            });
+        }
 
         // Animate skill tags
-        gsap.from('.skill-tag', {
-            scrollTrigger: {
-                trigger: '.skills',
-                start: 'top 80%'
-            },
-            scale: 0,
-            opacity: 0,
-            duration: 0.5,
-            stagger: {
-                amount: 0.8,
-                from: 'random'
-            },
-            ease: 'back.out(1.7)'
-        });
+        if (skillTags.length > 0) {
+            gsap.from('.skill-tag', {
+                scrollTrigger: {
+                    trigger: '.skills',
+                    start: 'top 80%'
+                },
+                scale: 0,
+                opacity: 0,
+                duration: 0.5,
+                stagger: {
+                    amount: 0.8,
+                    from: 'random'
+                },
+                ease: 'back.out(1.7)'
+            });
+        }
     }
 
     parallaxEffects() {
@@ -1465,6 +1479,7 @@ class App {
                 left: 0;
                 z-index: 0;
                 opacity: 0.5;
+                pointer-events: none;
             }
             
             /* Enhanced animations */
@@ -1628,4 +1643,36 @@ class App {
 const app = new App();
 
 // Export for debugging
-window.portfolioApp = app; 
+window.portfolioApp = app;
+
+// Immediate fallback for button functionality
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded - checking buttons');
+    
+    // Ensure buttons are visible and clickable
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(btn => {
+        console.log('Button found:', btn.textContent);
+        btn.style.display = 'inline-flex';
+        btn.style.visibility = 'visible';
+        btn.style.opacity = '1';
+    });
+    
+    // Ensure skills are visible
+    const skillTags = document.querySelectorAll('.skill-tag');
+    skillTags.forEach(tag => {
+        tag.style.display = 'inline-block';
+        tag.style.visibility = 'visible';
+        tag.style.opacity = '1';
+    });
+    
+    // Ensure project cards are visible
+    const projectCards = document.querySelectorAll('.project-card');
+    projectCards.forEach(card => {
+        card.style.display = 'block';
+        card.style.visibility = 'visible';
+        card.style.opacity = '1';
+    });
+    
+    console.log('Visibility fixes applied');
+}); 
