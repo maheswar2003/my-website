@@ -664,6 +664,64 @@ class PerformanceMonitor {
     }
 }
 
+// Dark mode toggle
+function setDarkMode(enabled) {
+  document.body.classList.toggle('dark-mode', enabled);
+  localStorage.setItem('darkMode', enabled ? '1' : '0');
+}
+
+function toggleDarkMode() {
+  setDarkMode(!document.body.classList.contains('dark-mode'));
+}
+
+// Add dark mode toggle button if not present
+if (!document.getElementById('dark-mode-toggle')) {
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'dark-mode-toggle';
+  toggleBtn.className = 'button glow';
+  toggleBtn.setAttribute('aria-label', 'Toggle dark mode');
+  toggleBtn.style.position = 'fixed';
+  toggleBtn.style.bottom = '2em';
+  toggleBtn.style.right = '2em';
+  toggleBtn.style.zIndex = '1000';
+  toggleBtn.innerHTML = '🌓';
+  toggleBtn.onclick = toggleDarkMode;
+  document.body.appendChild(toggleBtn);
+}
+
+// On load, set dark mode from localStorage
+if (localStorage.getItem('darkMode') === '1') {
+  setDarkMode(true);
+}
+
+// Button micro-interactions (keyboard accessibility)
+document.addEventListener('keydown', function(e) {
+  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement.classList.contains('button')) {
+    document.activeElement.classList.add('active');
+  }
+});
+document.addEventListener('keyup', function(e) {
+  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement.classList.contains('button')) {
+    document.activeElement.classList.remove('active');
+  }
+});
+
+// Apply glassmorphism and glow to relevant elements if not present
+window.addEventListener('DOMContentLoaded', () => {
+  // Add glass class to main content sections if not present
+  document.querySelectorAll('section, .main, .card').forEach(el => {
+    if (!el.classList.contains('glass')) {
+      el.classList.add('glass');
+    }
+  });
+  // Add glow to main CTAs
+  document.querySelectorAll('.cta, .button').forEach(el => {
+    if (!el.classList.contains('glow')) {
+      el.classList.add('glow');
+    }
+  });
+});
+
 // Initialize everything when DOM is ready
 class App {
     constructor() {
