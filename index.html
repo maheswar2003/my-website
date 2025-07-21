@@ -16,8 +16,8 @@
         *{margin:0;padding:0;box-sizing:border-box}
         :root{--primary-color:#667eea;--secondary-color:#764ba2;--accent-color:#f093fb;--text-primary:#2d3748;--text-secondary:#718096;--background:#fff;--surface:#f7fafc;--border:#e2e8f0;--space-xs:0.25rem;--space-sm:0.5rem;--space-md:1rem;--space-lg:1.5rem;--space-xl:2rem;--space-2xl:3rem;--space-3xl:4rem;--font-size-base:1rem;--font-size-sm:0.875rem;--font-size-lg:1.125rem;--font-size-xl:1.25rem;--font-size-2xl:1.5rem;--radius-sm:0.375rem;--radius-md:0.5rem;--radius-lg:0.75rem;--radius-xl:1rem;--transition-base:300ms ease;--transition-slow:500ms ease;scroll-behavior:smooth}
         @media(prefers-color-scheme:dark){:root{--text-primary:#f7fafc;--text-secondary:#a0aec0;--background:#1a202c;--surface:#2d3748;--border:#4a5568}}
-        body{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:var(--text-primary);background:var(--background);opacity:0;transition:opacity .3s}
-        body.loaded{opacity:1}
+        body{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:var(--text-primary);background:var(--background);/* removed opacity and transition */}
+        /* removed body.loaded */
         .header{position:fixed;top:0;width:100%;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:1000;transition:all .3s}
         .nav{padding:1rem 0}
         .nav-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 1rem}
@@ -35,7 +35,8 @@
         .btn-secondary:hover{background:white;color:var(--primary-color)}
         .skill-tag{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:white;padding:var(--space-sm) var(--space-md);border-radius:25px;font-size:var(--font-size-sm);font-weight:500;transition:all var(--transition-base);cursor:default;position:relative;overflow:hidden;box-shadow:0 4px 15px rgba(102,126,234,0.3);display:inline-block!important;margin:var(--space-xs);opacity:1!important;visibility:visible!important}
         .project-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--radius-xl);overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.06);transition:all var(--transition-base);border:1px solid rgba(255,255,255,0.2);will-change:transform,box-shadow;position:relative;display:block!important;opacity:1!important;visibility:visible!important}
-        .loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s,visibility .5s}
+        .loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background);display:none;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s,visibility .5s}
+        .loading-screen.active{display:flex;}
         .loading-screen.fade-out{opacity:0;visibility:hidden}
         @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.7}}
         @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
@@ -153,6 +154,7 @@
                     <h1 id="hero-title" class="hero-title">
                         Hello, I'm <span class="gradient-text">Maheswar Sahoo</span>
                     </h1>
+                    <p class="hero-animated-text"></p>
                     <p class="hero-subtitle">
                         AI/ML enthusiast crafting real-world solutions.
                     </p>
@@ -279,7 +281,8 @@
                             </div>
                         </div>
                     </div>
-                    <form class="contact-form" id="contact-form" role="form" aria-labelledby="contact-form-title">
+                    <form class="contact-form" id="contact-form" role="form" aria-labelledby="contact-form-title" action="https://formsubmit.co/maheswar2003@yahoo.com" method="POST">
+                        <input type="hidden" name="_captcha" value="false">
                         <h3 id="contact-form-title" class="sr-only">Contact Form</h3>
                         <div class="form-group">
                             <label for="name" class="sr-only">Your Name</label>
@@ -296,11 +299,10 @@
                             <textarea id="message" name="message" placeholder="Your Message" rows="5" required aria-describedby="message-error"></textarea>
                             <div id="message-error" class="error-message" role="alert" aria-live="polite"></div>
                         </div>
-                        <button type="submit" class="btn btn-primary" aria-describedby="submit-status">
+                        <button type="submit" class="btn btn-primary">
                             <span class="btn-text">Send Message</span>
                             <span class="btn-loader" aria-hidden="true"></span>
                         </button>
-                        <div id="submit-status" class="submit-status" role="status" aria-live="polite"></div>
                     </form>
                 </div>
             </div>
@@ -337,6 +339,21 @@
         };
     </script>
     
+    <!-- Improved Loading Screen Logic -->
+    <script>
+      // Only show loading screen if page takes longer than 400ms to load
+      let loadingTimeout = setTimeout(() => {
+        document.getElementById('loading-screen').classList.add('active');
+      }, 400);
+      window.addEventListener('DOMContentLoaded', () => {
+        clearTimeout(loadingTimeout);
+        document.getElementById('loading-screen').classList.remove('active');
+      });
+      window.addEventListener('load', () => {
+        clearTimeout(loadingTimeout);
+        document.getElementById('loading-screen').classList.remove('active');
+      });
+    </script>
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {

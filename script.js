@@ -1385,17 +1385,16 @@ class App {
                 this.components.particles = new ParticleEffects();
             }
 
-            // Initialize typing effect for hero title
-            const heroTitle = $('.hero-title');
-            if (heroTitle) {
-                const originalText = heroTitle.textContent;
+            // Initialize typing effect for hero animated text
+            const heroAnimatedText = $('.hero-animated-text');
+            if (heroAnimatedText) {
                 const typingStrings = [
-                    originalText,
-                    "Hello, I'm a Creative Developer",
-                    "Hello, I'm an AI Enthusiast",
-                    originalText
+                    "creating dev and ai ...",
+                    "building real-world solutions",
+                    "exploring data and code",
+                    "open for collaborations!"
                 ];
-                this.components.typing = new TypingEffect(heroTitle, typingStrings, {
+                this.components.typing = new TypingEffect(heroAnimatedText, typingStrings, {
                     delay: 1000,
                     speed: 50,
                     deleteSpeed: 30,
