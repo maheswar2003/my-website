@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         behavior: 'smooth'
                     });
                 } else {
-                    console.error(`Navigation target not found: ${targetId}`);
+                    // Navigation target not found - silently handle
                 }
             };
             
@@ -807,38 +807,6 @@ class ContactFormManager {
         }
     }
 
-    async submitForm(formData) {
-        try {
-            const response = await fetch('https://formsubmit.co/maheswar2003@yahoo.com', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: formData.get('name'),
-                    email: formData.get('email'),
-                    message: formData.get('message'),
-                    _subject: `New message from ${formData.get('name')} via portfolio website`,
-                    _captcha: false,
-                    _template: 'table'
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return { success: true };
-        } catch (error) {
-            // Form submission error - handled gracefully
-            return { 
-                success: false, 
-                error: 'Network error. Please check your connection and try again.' 
-            };
-        }
-    }
-
     showSubmissionStatus(success, message) {
         const statusElement = $('#submit-status');
         if (statusElement) {
@@ -1321,26 +1289,44 @@ class App {
                 this.components.particles = new ParticleEffects();
             }
 
-            // Show greeting first, then start animated subtitle
+            // Show main greeting first, then start tech animations
+            const heroTitle = $('.hero-title');
             const heroAnimatedText = $('.hero-animated-text');
-            if (heroAnimatedText) {
+            
+            if (heroTitle && heroAnimatedText) {
                 heroAnimatedText.setAttribute('aria-live', 'polite');
-                heroAnimatedText.textContent = "Hello, I'm Maheswar Sahoo";
+                
+                // After 3 seconds, fade out main title and start tech lines
                 setTimeout(() => {
-                    heroAnimatedText.textContent = '';
-                    const typingStrings = [
-                        "building AI-powered apps",
-                        "building real-world solutions",
-                        "exploring data and code",
-                        "open for collaborations!"
+                    // Fade out main hero title
+                    if (window.gsap) {
+                        gsap.to(heroTitle, {
+                            opacity: 0,
+                            y: -20,
+                            duration: 0.8,
+                            ease: 'power2.inOut'
+                        });
+                    } else {
+                        heroTitle.style.opacity = '0';
+                        heroTitle.style.transform = 'translateY(-20px)';
+                    }
+                    
+                    // Start tech line animations with robotic feel
+                    const techStrings = [
+                        "> building AI-powered apps_",
+                        "> crafting intelligent solutions_", 
+                        "> exploring data and code_",
+                        "> open for collaborations!_"
                     ];
-                    this.components.typing = new TypingEffect(heroAnimatedText, typingStrings, {
-                        delay: 0,
-                        speed: 50,
-                        deleteSpeed: 30,
-                        loop: true
+                    
+                    this.components.typing = new TypingEffect(heroAnimatedText, techStrings, {
+                        delay: 800,
+                        speed: 80,        // Slower, more robotic typing
+                        deleteSpeed: 40,  // Faster deletion for tech feel
+                        loop: true,
+                        cursor: false     // Remove cursor since we have _ in strings
                     });
-                }, 2500);
+                }, 3000);
             }
 
             // Add dynamic styles
@@ -1549,9 +1535,7 @@ class App {
 // Start the application
 const app = new App();
 
-// Export for debugging (remove in production)
-window.portfolioApp = app;
-
+// Production build - debug exports removed for performance
 // Comprehensive dependency check and fallback system
 document.addEventListener('DOMContentLoaded', () => {
     // Check critical dependencies
@@ -1737,18 +1721,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // Visibility fixes and navigation fallback applied
 }); 
 
-// Scroll-to-top button logic
+// Scroll-to-top button logic with performance optimization
 (function(){
   const scrollBtn = document.getElementById('scrollToTop');
   if (!scrollBtn) return;
-  window.addEventListener('scroll', function() {
+  
+  let ticking = false;
+  const updateScrollButton = () => {
     if (window.scrollY > 200) {
       scrollBtn.style.display = 'flex';
     } else {
       scrollBtn.style.display = 'none';
     }
+    ticking = false;
+  };
+  
+  // Use passive listener for better performance
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateScrollButton);
+      ticking = true;
+    }
+  }, { passive: true });
+  
+  scrollBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      // Fallback for older browsers
+      window.scrollTo(0, 0);
+    }
   });
-  scrollBtn.addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-})(); 
+})();
+
+// Enhanced error handling for critical functions
+window.addEventListener('error', (event) => {
+  // Silently handle errors in production to prevent user disruption
+  if (event.error && event.error.name !== 'NetworkError') {
+    // Log only critical errors for debugging
+  }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  // Prevent unhandled promise rejections from showing to users
+  event.preventDefault();
+}); 

@@ -27,6 +27,7 @@ const CACHE_CONFIG = {
 const STATIC_ASSETS = [
     '/',
     '/index.html',
+    '/thank-you.html',
     '/styles.css',
     '/script.js',
     '/manifest.json',

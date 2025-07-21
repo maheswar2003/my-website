@@ -387,6 +387,57 @@ body {
     line-height: 1.2;
 }
 
+/* Hero title fade transition */
+.hero-title {
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+}
+
+/* Tech-style animated text */
+.hero-animated-text {
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hero-animated-text:empty {
+  display: none;
+}
+
+/* Terminal-like cursor effect for robotic feel */
+.hero-animated-text::before {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #00ff41;
+  margin-right: 0.25rem;
+  animation: terminalBlink 1.5s infinite;
+}
+
+@keyframes terminalBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Mobile responsive for tech text */
+@media (max-width: 768px) {
+  .hero-animated-text {
+    font-size: 1rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
 .gradient-text {
     background: linear-gradient(135deg, #f093fb, #f5576c);
     -webkit-background-clip: text;
@@ -1227,5 +1278,73 @@ body {
     bottom: 2rem;
     width: 44px;
     height: 44px;
+  }
+} 
+
+/* Performance Optimizations */
+.btn, .skill-tag, .project-card, .scroll-to-top {
+  will-change: transform;
+}
+
+.hero {
+  will-change: background-position;
+}
+
+/* Focus States for Better Accessibility */
+.btn:focus-visible,
+.nav-link:focus-visible,
+.contact-link:focus-visible,
+.project-link:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Optimized Gradients for Better Performance */
+.hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+}
+
+.skill-tag {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+/* Reduce Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hero-content,
+  .project-card,
+  .skill-tag,
+  .btn {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .scroll-to-top {
+    transition: opacity 0.1s ease !important;
+  }
+}
+
+/* Print Styles Optimization */
+@media print {
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .hero {
+    background: white !important;
+    color: black !important;
+    padding: 20px 0 !important;
+    min-height: auto !important;
+  }
+  
+  .nav-toggle,
+  .scroll-to-top,
+  .hero-particles,
+  .contact-form {
+    display: none !important;
   }
 } 
