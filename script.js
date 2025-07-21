@@ -254,31 +254,27 @@ class GSAPAnimations {
     }
 
     heroAnimation() {
-        const tl = gsap.timeline({ delay: 0.5 });
+        const tl = gsap.timeline({ delay: 0.2 });
         
         tl.from('.hero-title', {
-            y: 50,
-            opacity: 0,
-            duration: 1,
+            y: 30,
+            duration: 0.8,
             clearProps: 'all'
         })
         .from('.hero-subtitle', {
-            y: 30,
-            opacity: 0,
-            duration: 0.8
-        }, '-=0.5')
-        .from('.hero-buttons .btn', {
             y: 20,
-            opacity: 0,
-            duration: 0.6,
-            stagger: 0.2
+            duration: 0.6
         }, '-=0.4')
+        .from('.hero-buttons .btn', {
+            y: 15,
+            duration: 0.5,
+            stagger: 0.15
+        }, '-=0.3')
         .from('.hero-image', {
-            scale: 0.8,
-            opacity: 0,
-            duration: 1,
-            ease: 'back.out(1.7)'
-        }, '-=0.8');
+            scale: 0.92,
+            duration: 0.7,
+            ease: 'back.out(1.4)'
+        }, '-=0.6');
     }
 
     scrollAnimations() {
@@ -995,67 +991,7 @@ class ContactFormManager {
             }, 300));
         });
 
-        // Form submission
-        this.form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (this.isSubmitting) return;
-            
-            if (!this.validateForm()) {
-                this.showNotification('Please fix the errors before submitting.', 'error');
-                
-                // Shake animation for form
-                if (window.gsap) {
-                    gsap.to(this.form, {
-                        x: [-10, 10, -10, 10, 0],
-                        duration: 0.5
-                    });
-                }
-                return;
-            }
-            
-            this.setLoadingState(true);
-            
-            const formData = new FormData(this.form);
-            const result = await this.submitForm(formData);
-            
-            this.setLoadingState(false);
-            
-            if (result.success) {
-                this.showSubmissionStatus(true, 'Thank you for your message! I\'ll get back to you soon.');
-                
-                // Success animation
-                if (window.gsap) {
-                    gsap.to(this.form, {
-                        scale: 0.95,
-                        opacity: 0.5,
-                        duration: 0.3,
-                        onComplete: () => {
-                            this.form.reset();
-                            // Reset character counter
-                            const counter = this.form.querySelector('.character-counter');
-                            if (counter) counter.textContent = '0 / 1000';
-                            
-                            gsap.to(this.form, {
-                                scale: 1,
-                                opacity: 1,
-                                duration: 0.3
-                            });
-                        }
-                    });
-                } else {
-                    this.form.reset();
-                }
-                
-                // Clear any error states
-                fields.forEach(field => {
-                    field.classList.remove('error');
-                    this.showFieldError(field, '');
-                });
-            } else {
-                this.showSubmissionStatus(false, result.error || 'Sorry, there was an error sending your message. Please try again or email me directly.');
-            }
-        });
+        // Remove custom JS form submission logic. Let browser handle submission.
     }
 }
 
@@ -1385,21 +1321,26 @@ class App {
                 this.components.particles = new ParticleEffects();
             }
 
-            // Initialize typing effect for hero animated text
+            // Show greeting first, then start animated subtitle
             const heroAnimatedText = $('.hero-animated-text');
             if (heroAnimatedText) {
-                const typingStrings = [
-                    "creating dev and ai ...",
-                    "building real-world solutions",
-                    "exploring data and code",
-                    "open for collaborations!"
-                ];
-                this.components.typing = new TypingEffect(heroAnimatedText, typingStrings, {
-                    delay: 1000,
-                    speed: 50,
-                    deleteSpeed: 30,
-                    loop: true
-                });
+                heroAnimatedText.setAttribute('aria-live', 'polite');
+                heroAnimatedText.textContent = "Hello, I'm Maheswar Sahoo";
+                setTimeout(() => {
+                    heroAnimatedText.textContent = '';
+                    const typingStrings = [
+                        "building AI-powered apps",
+                        "building real-world solutions",
+                        "exploring data and code",
+                        "open for collaborations!"
+                    ];
+                    this.components.typing = new TypingEffect(heroAnimatedText, typingStrings, {
+                        delay: 0,
+                        speed: 50,
+                        deleteSpeed: 30,
+                        loop: true
+                    });
+                }, 2500);
             }
 
             // Add dynamic styles
@@ -1795,3 +1736,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Visibility fixes and navigation fallback applied
 }); 
+
+// Scroll-to-top button logic
+(function(){
+  const scrollBtn = document.getElementById('scrollToTop');
+  if (!scrollBtn) return;
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 200) {
+      scrollBtn.style.display = 'flex';
+    } else {
+      scrollBtn.style.display = 'none';
+    }
+  });
+  scrollBtn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})(); 

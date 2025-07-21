@@ -116,6 +116,7 @@
         "email": "maheswar2003@yahoo.com"
     }
     </script>
+    <link rel="canonical" href="https://maheswar2003.github.io/mywebsite/">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -154,7 +155,7 @@
                     <h1 id="hero-title" class="hero-title">
                         Hello, I'm <span class="gradient-text">Maheswar Sahoo</span>
                     </h1>
-                    <p class="hero-animated-text"></p>
+                    <p class="hero-animated-text" aria-live="polite"></p>
                     <p class="hero-subtitle">
                         AI/ML enthusiast crafting real-world solutions.
                     </p>
@@ -267,22 +268,22 @@
                                 <i class="fas fa-envelope" aria-hidden="true"></i>
                                 <a href="mailto:maheswar2003@yahoo.com" class="contact-link" aria-label="Send email to Maheswar">maheswar2003@yahoo.com</a>
                             </div>
-                            <div class="contact-item" role="listitem">
-                                <i class="fab fa-github" aria-hidden="true"></i>
-                                <a href="https://github.com/maheswar2003" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="Visit Maheswar's GitHub profile">github.com/maheswar2003</a>
-                            </div>
-                            <div class="contact-item" role="listitem">
-                                <i class="fab fa-linkedin" aria-hidden="true"></i>
-                                <a href="https://linkedin.com/in/maheswar2003" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="Visit Maheswar's LinkedIn profile">linkedin.com/in/maheswar2003</a>
-                            </div>
-                            <div class="contact-item" role="listitem">
-                                <i class="fab fa-twitter" aria-hidden="true"></i>
-                                <a href="https://twitter.com/maheswar2003" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="Visit Maheswar's Twitter profile">@maheswar2003</a>
-                            </div>
+                        </div>
+                        <div class="contact-social-buttons">
+                            <a href="https://linkedin.com/in/maheswar2003" class="btn-social btn-linkedin" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </a>
+                            <a href="https://twitter.com/maheswar2003" class="btn-social btn-twitter" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                                <i class="fab fa-twitter"></i> Twitter
+                            </a>
+                            <a href="https://github.com/maheswar2003" class="btn-social btn-github" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
                         </div>
                     </div>
                     <form class="contact-form" id="contact-form" role="form" aria-labelledby="contact-form-title" action="https://formsubmit.co/maheswar2003@yahoo.com" method="POST">
                         <input type="hidden" name="_captcha" value="false">
+                        <input type="hidden" name="_next" value="https://maheswar2003.github.io/mywebsite/thank-you.html">
                         <h3 id="contact-form-title" class="sr-only">Contact Form</h3>
                         <div class="form-group">
                             <label for="name" class="sr-only">Your Name</label>
@@ -368,5 +369,7 @@
             });
         }
     </script>
+    <!-- Add scroll-to-top button at end of body -->
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top" type="button" style="display:none;"><i class="fas fa-arrow-up"></i></button>
 </body>
 </html> 
